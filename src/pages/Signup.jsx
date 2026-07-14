@@ -1,147 +1,295 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import {
+  Container,
+  Paper,
+  Typography,
+  TextField,
+  Button,
+  Box,
+  Alert,
+  FormControlLabel,
+  Checkbox,
+} from '@mui/material';
 
 export default function Signup() {
   const { signup } = useAuth();
   const navigate = useNavigate();
 
-  const [fullname, setFullname] = useState('');
-  const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [agree, setAgree] = useState(false);
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    mobile: '',
+    password: '',
+    confirmPassword: '',
+    agree: false,
+  });
 
   const [statusMessage, setStatusMessage] = useState('');
   const [isSuccess, setIsSuccess] = useState(false);
 
+  // Handle Input Change
+  const handleChange = (e) => {
+    const { name, value, checked, type } = e.target;
+    setFormData({
+      ...formData,
+      [name]: type === 'checkbox' ? checked : value,
+    });
+  };
+
+  // Store Data in localStorage & AuthContext
   const handleSubmit = (e) => {
     e.preventDefault();
-    
-    if (!fullname || !email || !phone || !password || !confirmPassword) {
+
+    if (!formData.name || !formData.email || !formData.mobile || !formData.password || !formData.confirmPassword) {
       setStatusMessage('Please fill in all fields.');
       setIsSuccess(false);
       return;
     }
 
-    if (password !== confirmPassword) {
+    if (formData.password !== formData.confirmPassword) {
       setStatusMessage('Passwords do not match. Please try again.');
       setIsSuccess(false);
       return;
     }
 
-    if (!agree) {
+    if (!formData.agree) {
       setStatusMessage('Please accept the privacy policy to continue.');
       setIsSuccess(false);
       return;
     }
 
-    const result = signup(fullname, email, phone, password);
+    // Call the AuthContext signup method
+    const result = signup(formData.name, formData.email, formData.mobile, formData.password);
     setStatusMessage(result.message);
     setIsSuccess(result.success);
 
     if (result.success) {
-      // Redirect to login after 1.5 seconds
+      // Store signupData in localStorage exactly as requested by user
+      localStorage.setItem('signupData', JSON.stringify(formData));
+      console.log('Signup Data Stored in LocalStorage:', formData);
+
+      // Redirect to login or dashboard
       setTimeout(() => {
-        navigate('/login');
+        navigate('/dashboard');
       }, 1500);
     }
   };
 
   return (
-    <div className="site-shell text-start">
-      <section className="auth-card">
-        <p className="tag">Create account</p>
-        <h1 className="hero-title">Join CuraNova and simplify hospital access.</h1>
-        <p className="hero-text">Sign up to explore services, appointments, and support with a secure account.</p>
-        
-        {statusMessage && (
-          <div className="form-status" style={{ 
-            color: isSuccess ? '#0f766e' : '#b42318', 
-            backgroundColor: isSuccess ? '#e6f7fa' : '#fef2f2',
-            border: `1px solid ${isSuccess ? '#2bb3c0' : '#fecaca'}`
-          }}>
-            {statusMessage}
-          </div>
-        )}
+    <div className="site-shell text-start" style={{ display: 'flex', justifyContent: 'center', background: 'transparent', boxShadow: 'none' }}>
+      <Container maxWidth="sm" sx={{ px: 0 }}>
+        <Paper
+          elevation={0}
+          sx={{
+            p: { xs: 3, md: 5 },
+            borderRadius: '24px',
+            border: '1px solid #dbe9ec',
+            boxShadow: '0 24px 60px rgba(15, 108, 127, 0.12)',
+            background: '#ffffff',
+          }}
+        >
+          <Box sx={{ mb: 3, textAlign: 'center' }}>
+            <Typography
+              variant="overline"
+              sx={{
+                color: '#0f6c7f',
+                fontWeight: 700,
+                letterSpacing: '0.1em',
+                background: '#e5f6f8',
+                px: 2,
+                py: 0.5,
+                borderRadius: '999px',
+                display: 'inline-block',
+                mb: 2,
+              }}
+            >
+              Create Account
+            </Typography>
+            <Typography
+              variant="h4"
+              component="h1"
+              sx={{
+                fontWeight: 800,
+                color: '#0b4d5a',
+                mb: 1,
+                fontSize: { xs: '1.75rem', sm: '2.25rem' },
+                fontFamily: 'Inter, sans-serif',
+              }}
+            >
+              Join CuraNova
+            </Typography>
+            <Typography variant="body2" sx={{ color: '#45656a' }}>
+              Sign up to explore services, appointments, and support with a secure account.
+            </Typography>
+          </Box>
 
-        <form id="signupForm" className="form-grid" onSubmit={handleSubmit}>
-          <div>
-            <label htmlFor="fullname">Full Name</label>
-            <input 
-              type="text" 
-              id="fullname" 
-              value={fullname} 
-              onChange={(e) => setFullname(e.target.value)} 
-              required 
+          {statusMessage && (
+            <Alert
+              severity={isSuccess ? 'success' : 'error'}
+              sx={{
+                mb: 3,
+                borderRadius: '12px',
+                '& .MuiAlert-message': { fontWeight: 500 },
+              }}
+            >
+              {statusMessage}
+            </Alert>
+          )}
+
+          <Box
+            component="form"
+            onSubmit={handleSubmit}
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 2.5,
+            }}
+          >
+            <TextField
+              label="Name"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              fullWidth
+              required
+              variant="outlined"
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: '12px',
+                  '&.Mui-focused fieldset': {
+                    borderColor: '#0f6c7f',
+                  },
+                },
+              }}
             />
-          </div>
-          <div>
-            <label htmlFor="signup-email">Email</label>
-            <input 
-              type="email" 
-              id="signup-email" 
-              value={email} 
-              onChange={(e) => setEmail(e.target.value)} 
-              required 
+
+            <TextField
+              label="Email"
+              name="email"
+              type="email"
+              value={formData.email}
+              onChange={handleChange}
+              fullWidth
+              required
+              variant="outlined"
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: '12px',
+                  '&.Mui-focused fieldset': {
+                    borderColor: '#0f6c7f',
+                  },
+                },
+              }}
             />
-          </div>
-          <div>
-            <label htmlFor="phone">Phone Number</label>
-            <input 
-              type="tel" 
-              id="phone" 
-              value={phone} 
-              onChange={(e) => setPhone(e.target.value)} 
-              required 
+
+            <TextField
+              label="Mobile"
+              name="mobile"
+              value={formData.mobile}
+              onChange={handleChange}
+              fullWidth
+              required
+              variant="outlined"
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: '12px',
+                  '&.Mui-focused fieldset': {
+                    borderColor: '#0f6c7f',
+                  },
+                },
+              }}
             />
-          </div>
-          <div>
-            <label htmlFor="signup-password">Password</label>
-            <input 
-              type="password" 
-              id="signup-password" 
-              value={password} 
-              onChange={(e) => setPassword(e.target.value)} 
-              required 
+
+            <TextField
+              label="Password"
+              name="password"
+              type="password"
+              value={formData.password}
+              onChange={handleChange}
+              fullWidth
+              required
+              variant="outlined"
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: '12px',
+                  '&.Mui-focused fieldset': {
+                    borderColor: '#0f6c7f',
+                  },
+                },
+              }}
             />
-          </div>
-          <div>
-            <label htmlFor="confirm-password">Confirm Password</label>
-            <input 
-              type="password" 
-              id="confirm-password" 
-              value={confirmPassword} 
-              onChange={(e) => setConfirmPassword(e.target.value)} 
-              required 
+
+            <TextField
+              label="Confirm Password"
+              name="confirmPassword"
+              type="password"
+              value={formData.confirmPassword}
+              onChange={handleChange}
+              fullWidth
+              required
+              variant="outlined"
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: '12px',
+                  '&.Mui-focused fieldset': {
+                    borderColor: '#0f6c7f',
+                  },
+                },
+              }}
             />
-          </div>
-          
-          <div className="consent-box">
-            <div className="consent-item">
-              <input 
-                type="checkbox" 
-                id="privacyConsent" 
-                checked={agree} 
-                onChange={(e) => setAgree(e.target.checked)} 
-                required 
-              />
-              <label htmlFor="privacyConsent" style={{ display: 'inline', fontWeight: '500', fontSize: '0.9rem', margin: 0 }}>
-                I agree to the privacy policy and understand that my details will be used to manage my account.
-              </label>
-            </div>
-          </div>
-          
-          <button className="auth-btn" type="submit" style={{ width: 'fit-content' }}>
-            Sign Up
-          </button>
-        </form>
-        
-        <p className="mt-3 mb-0">
-          Already have an account? <Link to="/login" style={{ fontWeight: '600' }}>Login</Link>
-        </p>
-      </section>
+
+            <FormControlLabel
+              control={
+                <Checkbox
+                  name="agree"
+                  checked={formData.agree}
+                  onChange={handleChange}
+                  sx={{
+                    color: '#0f6c7f',
+                    '&.Mui-checked': {
+                      color: '#0f6c7f',
+                    },
+                  }}
+                />
+              }
+              label={
+                <Typography variant="body2" sx={{ color: '#45656a', userSelect: 'none' }}>
+                  I agree to the privacy policy and consent to the use of my details.
+                </Typography>
+              }
+            />
+
+            <Button
+              variant="contained"
+              type="submit"
+              size="large"
+              sx={{
+                py: 1.5,
+                borderRadius: '12px',
+                backgroundColor: '#0f6c7f',
+                fontWeight: 700,
+                textTransform: 'none',
+                fontSize: '1rem',
+                boxShadow: '0 4px 12px rgba(15, 108, 127, 0.2)',
+                '&:hover': {
+                  backgroundColor: '#0b4d5a',
+                },
+              }}
+            >
+              Sign Up
+            </Button>
+          </Box>
+
+          <Typography variant="body2" align="center" sx={{ mt: 3, color: '#45656a' }}>
+            Already have an account?{' '}
+            <Link to="/login" style={{ fontWeight: 600, color: '#0f6c7f' }}>
+              Login
+            </Link>
+          </Typography>
+        </Paper>
+      </Container>
     </div>
   );
 }

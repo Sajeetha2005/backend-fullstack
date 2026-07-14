@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
+import { useAuth } from '../context/AuthContext';
 
 export default function Doctors() {
+  const { user } = useAuth();
   const doctorsList = [
     { id: 'Dr. Asha Kumar', name: 'Dr. Asha Kumar', title: 'MBBS, MD • General Physician', text: 'Senior physician with expertise in preventive care, wellness, and long-term treatment planning.' },
     { id: 'Dr. Rahul Menon', name: 'Dr. Rahul Menon', title: 'MBBS, DM • Cardiologist', text: 'Cardiologist focused on heart health, diagnosis, and patient guidance for better outcomes.' },
@@ -25,6 +27,7 @@ export default function Doctors() {
     setBookingDoctor(doctorName);
     setFormData(prev => ({
       ...prev,
+      name: user ? user.fullname : '',
       doctor: doctorName
     }));
     setStatusMessage('');
@@ -72,6 +75,8 @@ export default function Doctors() {
         time: formData.time,
         doctor: formData.doctor,
         reason: formData.reason,
+        userEmail: user ? user.email : 'guest@example.com',
+        status: 'Pending',
         createdAt: new Date().toISOString()
       };
       existingAppointments.push(newAppointment);

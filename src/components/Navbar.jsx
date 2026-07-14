@@ -63,8 +63,16 @@ export default function Navbar() {
             </NavLink>
           </li>
           
+          {user && (
+            <li>
+              <NavLink to="/dashboard" className={({ isActive }) => isActive ? 'active' : ''}>
+                Dashboard
+              </NavLink>
+            </li>
+          )}
+          
           {user ? (
-            <li className="d-flex align-items-center gap-3 ms-2">
+            <li className="d-flex align-items-center gap-3 ms-2" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <span style={{ fontSize: '0.9rem', fontWeight: '600', color: 'var(--primary-dark)' }}>
                 Hi, {user.fullname.split(' ')[0]}
               </span>

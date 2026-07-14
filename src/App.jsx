@@ -17,6 +17,7 @@ import Signup from './pages/Signup';
 import ForgotPassword from './pages/ForgotPassword';
 import Privacy from './pages/Privacy';
 import Terms from './pages/Terms';
+import Dashboard from './pages/Dashboard';
 
 export default function App() {
   return (
@@ -36,6 +37,7 @@ export default function App() {
               <Route path="/faq" element={<FAQ />} />
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
+              <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/privacy" element={<Privacy />} />
               <Route path="/terms" element={<Terms />} />
