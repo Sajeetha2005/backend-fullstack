@@ -40,7 +40,7 @@ export default function Reviews() {
     if (!autoplay || reviews.length === 0) return;
     const interval = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % reviews.length);
-    }, 5000);
+    }, 10000);
     return () => clearInterval(interval);
   }, [autoplay, reviews.length]);
 

@@ -1,34 +1,52 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import { api } from '../utils/api';
 
 export default function Doctors() {
   const { user } = useAuth();
-  const doctorsList = [
-    { id: 'Dr. Asha Kumar', name: 'Dr. Asha Kumar', title: 'MBBS, MD • General Physician', text: 'Senior physician with expertise in preventive care, wellness, and long-term treatment planning.' },
-    { id: 'Dr. Rahul Menon', name: 'Dr. Rahul Menon', title: 'MBBS, DM • Cardiologist', text: 'Cardiologist focused on heart health, diagnosis, and patient guidance for better outcomes.' },
-    { id: 'Dr. Priya Nair', name: 'Dr. Priya Nair', title: 'MBBS, DCH • Pediatric Specialist', text: 'Pediatric specialist committed to creating a reassuring and effective experience for children and families.' },
-    { id: 'Dr. Samuel George', name: 'Dr. Samuel George', title: 'MS • Surgeon', text: 'Surgeon known for careful treatment planning, strong communication, and patient safety.' }
-  ];
+  const navigate = useNavigate();
+  const [doctorsList, setDoctorsList] = useState([]);
+
+  useEffect(() => {
+    fetchDoctors();
+  }, []);
+
+  const fetchDoctors = async () => {
+    try {
+      const data = await api.getDoctors();
+      setDoctorsList(data);
+    } catch (error) {
+      console.error('Failed to load doctors:', error);
+    }
+  };
 
   const [bookingDoctor, setBookingDoctor] = useState(null);
   const [formData, setFormData] = useState({
     name: '',
     age: '',
+    phone: '',
     date: '',
     time: '',
-    doctor: '',
+    doctorId: '',
     reason: '',
     agree: false
   });
   const [statusMessage, setStatusMessage] = useState('');
   const [isSuccess, setIsSuccess] = useState(false);
 
-  const openBookingModal = (doctorName) => {
-    setBookingDoctor(doctorName);
+  const openBookingModal = (doc) => {
+    if (!user) {
+      alert("Please login to book an appointment.");
+      navigate('/login');
+      return;
+    }
+    setBookingDoctor(doc);
     setFormData(prev => ({
       ...prev,
-      name: user ? user.fullname : '',
-      doctor: doctorName
+      name: user ? (user.name || '') : '',
+      phone: user ? (user.phone || '') : '',
+      doctorId: doc._id
     }));
     setStatusMessage('');
     setIsSuccess(false);
@@ -39,9 +57,10 @@ export default function Doctors() {
     setFormData({
       name: '',
       age: '',
+      phone: '',
       date: '',
       time: '',
-      doctor: '',
+      doctorId: '',
       reason: '',
       agree: false
     });
@@ -56,39 +75,42 @@ export default function Doctors() {
     }));
   };
 
-  const handleFormSubmit = (e) => {
+  const handleFormSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.name || !formData.age || !formData.date || !formData.time || !formData.reason || !formData.agree) {
+    if (!formData.name || !formData.age || !formData.phone || !formData.date || !formData.time || !formData.reason || !formData.agree) {
       setStatusMessage('Please fill out all required fields and accept the terms.');
       setIsSuccess(false);
       return;
     }
 
-    // Save appointment request to LocalStorage
+    // Save appointment request using api
     try {
-      const existingAppointments = JSON.parse(localStorage.getItem('curanovaAppointments') || '[]');
-      const newAppointment = {
-        id: Date.now().toString(),
+      const appointmentData = {
         patientName: formData.name,
         patientAge: formData.age,
-        date: formData.date,
-        time: formData.time,
-        doctor: formData.doctor,
+        patientPhone: formData.phone,
+        date: formData.date, // Note: the backend accepts appointmentDate, wait let's check what api.createAppointment does
+        time: formData.time, // Same here
+        appointmentDate: formData.date,
+        appointmentTime: formData.time,
+        doctorId: formData.doctorId,
         reason: formData.reason,
-        userEmail: user ? user.email : 'guest@example.com',
-        status: 'Pending',
-        createdAt: new Date().toISOString()
       };
-      existingAppointments.push(newAppointment);
-      localStorage.setItem('curanovaAppointments', JSON.stringify(existingAppointments));
-      
-      setIsSuccess(true);
-      setStatusMessage('Appointment request received. Our team will contact you shortly.');
-      
-      // Auto-close after 2.5 seconds
-      setTimeout(() => {
-        closeBookingModal();
-      }, 2500);
+
+      const result = await api.createAppointment(appointmentData);
+
+      if (result.success) {
+        setIsSuccess(true);
+        setStatusMessage('Appointment request received. Our team will contact you shortly.');
+        
+        // Auto-close after 2.5 seconds
+        setTimeout(() => {
+          closeBookingModal();
+        }, 2500);
+      } else {
+        setStatusMessage(result.message || 'Failed to submit request. Please try again.');
+        setIsSuccess(false);
+      }
     } catch (err) {
       console.error(err);
       setStatusMessage('Failed to submit request. Please try again.');
@@ -121,13 +143,13 @@ export default function Doctors() {
         
         <div className="grid-2">
           {doctorsList.map((doc) => (
-            <div key={doc.id} className="doctor-card">
+            <div key={doc._id} className="doctor-card">
               <div className="doctor-name">{doc.name}</div>
-              <div className="doctor-title">{doc.title}</div>
-              <p className="hero-text-simple">{doc.text}</p>
+              <div className="doctor-title">{doc.specialization}</div>
+              <p className="hero-text-simple">Experience: {doc.experience}</p>
               <button 
                 className="book-btn" 
-                onClick={() => openBookingModal(doc.name)}
+                onClick={() => openBookingModal(doc)}
                 style={{ width: 'fit-content', marginTop: 'auto' }}
               >
                 Book Appointment
@@ -167,6 +189,10 @@ export default function Doctors() {
                   <input id="age" type="number" value={formData.age} onChange={handleInputChange} required />
                 </div>
                 <div>
+                  <label htmlFor="phone">Phone Number</label>
+                  <input id="phone" type="tel" value={formData.phone} onChange={handleInputChange} required />
+                </div>
+                <div>
                   <label htmlFor="date">Date</label>
                   <input id="date" type="date" value={formData.date} onChange={handleInputChange} required />
                 </div>
@@ -175,13 +201,8 @@ export default function Doctors() {
                   <input id="time" type="time" value={formData.time} onChange={handleInputChange} required />
                 </div>
                 <div>
-                  <label htmlFor="doctor">Doctor</label>
-                  <select id="doctor" value={formData.doctor} onChange={handleInputChange}>
-                    <option value="Dr. Asha Kumar">Dr. Asha Kumar</option>
-                    <option value="Dr. Rahul Menon">Dr. Rahul Menon</option>
-                    <option value="Dr. Priya Nair">Dr. Priya Nair</option>
-                    <option value="Dr. Samuel George">Dr. Samuel George</option>
-                  </select>
+                  <label htmlFor="doctorId">Doctor</label>
+                  <input id="doctorId" type="text" value={bookingDoctor?.name || ''} readOnly style={{ backgroundColor: '#f9fafb', color: '#61717a' }} />
                 </div>
                 <div>
                   <label htmlFor="reason">Reason for appointment</label>

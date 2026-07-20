@@ -1,16 +1,15 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { api } from '../utils/api';
 
 export default function ForgotPassword() {
-  const { forgotPassword } = useAuth();
   const navigate = useNavigate();
 
   const [email, setEmail] = useState('');
   const [statusMessage, setStatusMessage] = useState('');
   const [isSuccess, setIsSuccess] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!email) {
       setStatusMessage('Please enter your email.');
@@ -18,14 +17,20 @@ export default function ForgotPassword() {
       return;
     }
 
-    const result = forgotPassword(email);
-    setStatusMessage(result.message);
-    setIsSuccess(result.success);
+    try {
+      const result = await api.forgotPassword(email);
+      setStatusMessage(result.message);
+      setIsSuccess(result.success);
 
-    if (result.success) {
-      setTimeout(() => {
-        navigate('/login');
-      }, 2000);
+      if (result.success) {
+        setTimeout(() => {
+          navigate('/login');
+        }, 3000);
+      }
+    } catch (err) {
+      console.error(err);
+      setStatusMessage(err.response?.data?.message || 'Server error. Please try again later.');
+      setIsSuccess(false);
     }
   };
 

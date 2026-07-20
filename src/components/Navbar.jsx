@@ -62,25 +62,8 @@ export default function Navbar() {
               FAQ
             </NavLink>
           </li>
-          
-          {user && (
-            <li>
-              <NavLink to="/dashboard" className={({ isActive }) => isActive ? 'active' : ''}>
-                Dashboard
-              </NavLink>
-            </li>
-          )}
-          
-          {user ? (
-            <li className="d-flex align-items-center gap-3 ms-2" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <span style={{ fontSize: '0.9rem', fontWeight: '600', color: 'var(--primary-dark)' }}>
-                Hi, {user.fullname.split(' ')[0]}
-              </span>
-              <button onClick={handleLogout} className="btn btn-sm btn-outline-primary py-1 px-3" style={{ fontSize: '0.85rem' }}>
-                Logout
-              </button>
-            </li>
-          ) : (
+
+          {!user && (
             <>
               <li>
                 <NavLink to="/login" className={({ isActive }) => isActive ? 'active' : ''}>
@@ -91,6 +74,61 @@ export default function Navbar() {
                 <NavLink to="/signup" className="btn btn-sm text-white py-1 px-3" style={{ fontSize: '0.85rem' }}>
                   Sign Up
                 </NavLink>
+              </li>
+            </>
+          )}
+
+          {user && user.role === 'user' && (
+            <>
+              <li>
+                <NavLink to="/dashboard" className={({ isActive }) => isActive ? 'active' : ''}>
+                  Profile
+                </NavLink>
+              </li>
+              <li>
+                <button onClick={handleLogout} className="nav-button-link">
+                  Logout
+                </button>
+              </li>
+            </>
+          )}
+
+          {user && user.role === 'doctor' && (
+            <>
+              <li>
+                <NavLink to="/dashboard" className={({ isActive }) => isActive ? 'active' : ''}>
+                  Dashboard
+                </NavLink>
+              </li>
+              <li>
+                <NavLink to="/appointments" className={({ isActive }) => isActive ? 'active' : ''}>
+                  Appointments
+                </NavLink>
+              </li>
+              <li>
+                <NavLink to="/profile" className={({ isActive }) => isActive ? 'active' : ''}>
+                  Profile
+                </NavLink>
+              </li>
+              <li>
+                <button onClick={handleLogout} className="nav-button-link">
+                  Logout
+                </button>
+              </li>
+            </>
+          )}
+
+          {user && user.role === 'admin' && (
+            <>
+              <li>
+                <NavLink to="/admin" className={({ isActive }) => isActive ? 'active' : ''}>
+                  Dashboard
+                </NavLink>
+              </li>
+              <li>
+                <button onClick={handleLogout} className="nav-button-link">
+                  Logout
+                </button>
               </li>
             </>
           )}

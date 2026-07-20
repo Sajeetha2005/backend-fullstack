@@ -39,7 +39,7 @@ export default function Signup() {
   };
 
   // Store Data in localStorage & AuthContext
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!formData.name || !formData.email || !formData.mobile || !formData.password || !formData.confirmPassword) {
@@ -61,19 +61,19 @@ export default function Signup() {
     }
 
     // Call the AuthContext signup method
-    const result = signup(formData.name, formData.email, formData.mobile, formData.password);
-    setStatusMessage(result.message);
-    setIsSuccess(result.success);
-
-    if (result.success) {
-      // Store signupData in localStorage exactly as requested by user
-      localStorage.setItem('signupData', JSON.stringify(formData));
-      console.log('Signup Data Stored in LocalStorage:', formData);
-
-      // Redirect to login or dashboard
-      setTimeout(() => {
-        navigate('/dashboard');
-      }, 1500);
+    try {
+      const result = await signup(formData.name, formData.email, formData.mobile, formData.password, formData.confirmPassword);
+      if (result && result.success) {
+        setStatusMessage('Account created. Redirecting to login...');
+        setIsSuccess(true);
+        setTimeout(() => navigate('/login'), 800);
+      } else {
+        setStatusMessage(result.message || 'Signup failed');
+        setIsSuccess(false);
+      }
+    } catch (error) {
+      setStatusMessage(error.response?.data?.message || 'Something went wrong');
+      setIsSuccess(false);
     }
   };
 

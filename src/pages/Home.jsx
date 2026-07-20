@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { api } from '../utils/api';
 
 export default function Home() {
   const reviews = [
@@ -10,12 +11,6 @@ export default function Home() {
 
   const [activeReview, setActiveReview] = useState(0);
 
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setActiveReview((prev) => (prev + 1) % reviews.length);
-    }, 6000);
-    return () => clearInterval(timer);
-  }, [reviews.length]);
 
   return (
     <div className="container-hero">
@@ -27,7 +22,7 @@ export default function Home() {
             <p className="hero-text-simple mb-4">CuraNova organizes appointments, patient flow, and clinical coordination in one elegant dashboard—without complexity.</p>
             <div className="d-flex flex-column flex-sm-row gap-3 justify-content-start">
               <Link className="btn btn-primary btn-lg" to="/services">Explore Services</Link>
-              <Link className="btn btn-outline-primary btn-lg" to="/about">Learn More</Link>
+              <Link className="btn btn-outline-primary btn-lg" to="/contact">Contact Us</Link>
             </div>
           </div>
           <div className="col-lg-6 mt-4 mt-lg-0 text-center">
@@ -102,7 +97,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Polish addition: Testimonials slider on homepage */}
+      {/* Testimonials slider */}
       <section className="mt-5 text-start">
         <h3 className="section-title">Patient Experiences</h3>
         <div className="review-carousel mt-3">
@@ -133,6 +128,8 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+
     </div>
   );
 }

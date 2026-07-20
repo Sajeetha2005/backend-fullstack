@@ -36,7 +36,7 @@ export default function Login() {
   };
 
   // Submit Login credentials
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!formData.email || !formData.password) {
@@ -51,17 +51,26 @@ export default function Login() {
       return;
     }
 
-    const result = login(formData.email, formData.password);
-    setStatusMessage(result.message);
-    setIsSuccess(result.success);
+    try {
+      const result = await login(formData.email, formData.password);
+      setStatusMessage(result.message || 'Login successful');
+      setIsSuccess(result.success);
 
-    if (result.success) {
-      // Redirect to dashboard after a short delay
-      setTimeout(() => {
-        navigate('/dashboard');
-      }, 1000);
+      if (result.success) {
+        // Redirect to dashboard after a short delay
+        setTimeout(() => {
+          if (result.user?.role === 'admin') navigate('/admin');
+          else if (result.user?.role === 'doctor') navigate('/doctor-dashboard');
+          else navigate('/dashboard');
+        }, 600);
+      }
+    } catch (error) {
+      console.error("Login Error:", error);
+      setStatusMessage(error.response?.data?.message || 'Login failed. Please check your credentials.');
+      setIsSuccess(false);
     }
   };
+
 
   return (
     <div className="site-shell text-start" style={{ display: 'flex', justifyContent: 'center', background: 'transparent', boxShadow: 'none' }}>
@@ -170,6 +179,7 @@ export default function Login() {
                 },
               }}
             />
+
 
             <FormControlLabel
               control={

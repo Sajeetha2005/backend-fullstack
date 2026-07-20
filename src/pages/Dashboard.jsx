@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { api } from '../utils/api';
 import {
   Container,
   Grid,
@@ -30,6 +31,9 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import PendingActionsIcon from '@mui/icons-material/PendingActions';
 import LogoutIcon from '@mui/icons-material/Logout';
 import AddIcon from '@mui/icons-material/Add';
+import ReceiptIcon from '@mui/icons-material/Receipt';
+import MedicalServicesIcon from '@mui/icons-material/MedicalServices';
+import jsPDF from 'jspdf';
 
 export default function Dashboard() {
   const { user, logout } = useAuth();
@@ -46,16 +50,15 @@ export default function Dashboard() {
     }
   }, [user, navigate]);
 
-  const loadAppointments = () => {
+  const loadAppointments = async () => {
     try {
-      const allAppointments = JSON.parse(localStorage.getItem('curanovaAppointments') || '[]');
-      // Filter for this user
-      const userAppointments = allAppointments.filter(app => app.userEmail === user?.email);
+      const allAppointments = await api.getAppointments();
       
       // Ensure all user appointments have a status, default to Pending if not present
-      const validatedAppointments = userAppointments.map(app => ({
+      const validatedAppointments = allAppointments.map(app => ({
         ...app,
-        status: app.status || 'Pending'
+        status: app.status || 'Pending',
+        id: app.id || app._id
       }));
       
       // Sort: newest first
@@ -66,39 +69,50 @@ export default function Dashboard() {
     }
   };
 
-  const handleCancelAppointment = (id) => {
+  const handleCancelAppointment = async (id) => {
     try {
-      const allAppointments = JSON.parse(localStorage.getItem('curanovaAppointments') || '[]');
-      const updatedAppointments = allAppointments.map(app => {
-        if (app.id === id) {
-          return { ...app, status: 'Cancelled' };
-        }
-        return app;
-      });
-      localStorage.setItem('curanovaAppointments', JSON.stringify(updatedAppointments));
-      setMessage('Appointment cancelled successfully.');
-      loadAppointments();
+      const result = await api.updateAppointmentStatus(id, 'Cancelled');
+      if (result.success) {
+        setMessage('Appointment cancelled successfully.');
+        loadAppointments();
+      } else {
+        setMessage('Failed to cancel appointment.');
+      }
     } catch (e) {
       console.error(e);
       setMessage('Failed to cancel appointment.');
     }
   };
 
-  const handleConfirmAppointment = (id) => {
+  const handleGenerateBill = (app) => {
     try {
-      const allAppointments = JSON.parse(localStorage.getItem('curanovaAppointments') || '[]');
-      const updatedAppointments = allAppointments.map(app => {
-        if (app.id === id) {
-          return { ...app, status: 'Confirmed' };
-        }
-        return app;
-      });
-      localStorage.setItem('curanovaAppointments', JSON.stringify(updatedAppointments));
-      setMessage('Appointment marked as Confirmed.');
-      loadAppointments();
-    } catch (e) {
-      console.error(e);
-      setMessage('Failed to update status.');
+      const doc = new jsPDF();
+      doc.setFontSize(22);
+      doc.text('Curanova Hospital - Medical Bill', 20, 20);
+      
+      doc.setFontSize(12);
+      doc.text(`Patient Name: ${user.name || ''}`, 20, 40);
+      doc.text(`Doctor: ${app.doctorId?.name || app.doctor || 'N/A'}`, 20, 50);
+      doc.text(`Date: ${new Date(app.appointmentDate || app.date).toLocaleDateString()}`, 20, 60);
+      doc.text(`Time: ${app.appointmentTime || app.time}`, 20, 70);
+      doc.text(`Reason: ${app.reason}`, 20, 80);
+      
+      doc.line(20, 90, 190, 90);
+      
+      doc.setFontSize(14);
+      // Assuming a standard fee if not provided
+      const fee = app.fee || 500;
+      doc.text(`Consultation Fee: \u20B9${fee}`, 20, 105);
+      
+      doc.setFontSize(10);
+      doc.text('Thank you for choosing Curanova Hospital.', 20, 130);
+      
+      doc.save(`Curanova_Bill_${app.id}.pdf`);
+      setMessage('Bill downloaded successfully!');
+      setTimeout(() => setMessage(''), 3000);
+    } catch (err) {
+       console.error("Error generating bill:", err);
+       setMessage('Failed to generate bill.');
     }
   };
 
@@ -126,7 +140,7 @@ export default function Dashboard() {
               Dashboard
             </Typography>
             <Typography variant="body1" sx={{ color: '#45656a' }}>
-              Welcome back, {user.fullname}! Manage your medical appointments and account details here.
+              Welcome back, {user.name || ''}! Manage your medical appointments and account details here.
             </Typography>
           </Box>
           <Button
@@ -183,10 +197,10 @@ export default function Dashboard() {
                     border: '2px solid #2bb3c0',
                   }}
                 >
-                  {user.fullname.charAt(0).toUpperCase()}
+                  {(user.name || 'U').charAt(0).toUpperCase()}
                 </Avatar>
                 <Typography variant="h6" sx={{ fontWeight: 700, color: '#0b4d5a', textAlign: 'center' }}>
-                  {user.fullname}
+                  {user.name || ''}
                 </Typography>
                 <Chip
                   label="Patient Account"
@@ -210,7 +224,7 @@ export default function Dashboard() {
                       Full Name
                     </Typography>
                     <Typography variant="body2" sx={{ color: '#12343b', fontWeight: 600 }}>
-                      {user.fullname}
+                      {user.name || ''}
                     </Typography>
                   </Box>
                 </Box>
@@ -388,12 +402,12 @@ export default function Dashboard() {
                       <TableBody>
                         {appointments.map((app) => (
                           <TableRow key={app.id} sx={{ '& td': { borderBottom: '1px solid #eef8fb' } }}>
-                            <TableCell sx={{ fontWeight: 600, color: '#12343b' }}>{app.doctor}</TableCell>
+                            <TableCell sx={{ fontWeight: 600, color: '#12343b' }}>Dr. {app.doctorId?.name || app.doctor}</TableCell>
                             <TableCell sx={{ color: '#45656a' }}>
-                              {app.patientName} <Typography variant="caption" display="block">Age: {app.patientAge}</Typography>
+                              {app.patientName} <Typography variant="caption" display="block">Age: {app.patientAge || 'N/A'}</Typography>
                             </TableCell>
                             <TableCell sx={{ color: '#45656a' }}>
-                              {app.date} <Typography variant="caption" display="block">{app.time}</Typography>
+                              {new Date(app.appointmentDate || app.date).toLocaleDateString()} <Typography variant="caption" display="block">{app.appointmentTime || app.time}</Typography>
                             </TableCell>
                             <TableCell sx={{ color: '#45656a', maxWidth: '150px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                               {app.reason}
@@ -419,11 +433,34 @@ export default function Dashboard() {
                                     <Button
                                       size="small"
                                       variant="outlined"
-                                      color="success"
-                                      onClick={() => handleConfirmAppointment(app.id)}
+                                      color="error"
+                                      startIcon={<CancelIcon />}
+                                      onClick={() => handleCancelAppointment(app.id)}
                                       sx={{ textTransform: 'none', borderRadius: '8px', fontSize: '0.75rem', py: 0.5 }}
                                     >
-                                      Approve
+                                      Cancel
+                                    </Button>
+                                  </>
+                                )}
+                                {app.status === 'Confirmed' && (
+                                  <>
+                                    <Button
+                                      size="small"
+                                      variant="contained"
+                                      startIcon={<ReceiptIcon />}
+                                      onClick={() => handleGenerateBill(app)}
+                                      sx={{ textTransform: 'none', borderRadius: '8px', fontSize: '0.75rem', py: 0.5, bgcolor: '#0f6c7f' }}
+                                    >
+                                      Bill
+                                    </Button>
+                                    <Button
+                                      size="small"
+                                      variant="outlined"
+                                      startIcon={<MedicalServicesIcon />}
+                                      onClick={() => alert("No medications prescribed for this appointment yet.")}
+                                      sx={{ textTransform: 'none', borderRadius: '8px', fontSize: '0.75rem', py: 0.5, color: '#0f6c7f', borderColor: '#0f6c7f' }}
+                                    >
+                                      Medications
                                     </Button>
                                     <Button
                                       size="small"
@@ -436,18 +473,6 @@ export default function Dashboard() {
                                       Cancel
                                     </Button>
                                   </>
-                                )}
-                                {app.status === 'Confirmed' && (
-                                  <Button
-                                    size="small"
-                                    variant="outlined"
-                                    color="error"
-                                    startIcon={<CancelIcon />}
-                                    onClick={() => handleCancelAppointment(app.id)}
-                                    sx={{ textTransform: 'none', borderRadius: '8px', fontSize: '0.75rem', py: 0.5 }}
-                                  >
-                                    Cancel
-                                  </Button>
                                 )}
                               </Box>
                             </TableCell>
