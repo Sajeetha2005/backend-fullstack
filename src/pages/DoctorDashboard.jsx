@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../utils/api';
 import {
-  Container, Grid, Paper, Typography, Box, Button, Avatar, Divider, Card, CardContent, Chip, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Alert,
+  Container, Grid, Paper, Typography, Box, Button, Avatar, Divider, Card, CardContent, Chip, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Alert, Dialog, DialogTitle, DialogContent, DialogActions, TextField
 } from '@mui/material';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import PersonIcon from '@mui/icons-material/Person';
@@ -19,6 +19,11 @@ export default function DoctorDashboard() {
   const navigate = useNavigate();
   const [appointments, setAppointments] = useState([]);
   const [message, setMessage] = useState('');
+  
+  // Medical Record Modal State
+  const [recordModalOpen, setRecordModalOpen] = useState(false);
+  const [currentAppForRecord, setCurrentAppForRecord] = useState(null);
+  const [recordData, setRecordData] = useState({ medication: '', billAmount: '' });
 
   useEffect(() => {
     if (!user || user.role !== 'doctor') {
@@ -58,6 +63,34 @@ export default function DoctorDashboard() {
     } catch (e) {
       console.error(e);
       setMessage('Failed to update status.');
+    }
+  };
+
+  const openRecordModal = (app) => {
+    setCurrentAppForRecord(app);
+    setRecordData({ 
+      medication: app.medication || '', 
+      billAmount: app.billAmount ? String(app.billAmount) : '' 
+    });
+    setRecordModalOpen(true);
+  };
+
+  const handleSaveRecord = async () => {
+    if (!currentAppForRecord) return;
+    try {
+      const result = await api.updateMedicalRecord(currentAppForRecord.id, recordData.medication, recordData.billAmount);
+      if (result.success) {
+        setMessage('Medical record updated successfully.');
+        loadAppointments();
+        setTimeout(() => setMessage(''), 3000);
+      } else {
+        setMessage('Failed to update record.');
+      }
+    } catch (e) {
+      console.error(e);
+      setMessage('Failed to update record.');
+    } finally {
+      setRecordModalOpen(false);
     }
   };
 
@@ -268,13 +301,21 @@ export default function DoctorDashboard() {
                                   </>
                                 )}
                                 {app.status === 'Confirmed' && (
-                                  <Button
-                                    size="small" variant="outlined" color="error" startIcon={<CancelIcon />}
-                                    onClick={() => handleUpdateStatus(app.id, 'Cancelled')}
-                                    sx={{ textTransform: 'none', borderRadius: '8px', fontSize: '0.75rem', py: 0.5 }}
-                                  >
-                                    Cancel
-                                  </Button>
+                                  <>
+                                    <Button
+                                      size="small" variant="contained" sx={{ bgcolor: '#0f6c7f', '&:hover': { bgcolor: '#0b4d5a' }, textTransform: 'none', borderRadius: '8px', fontSize: '0.75rem', py: 0.5 }}
+                                      onClick={() => openRecordModal(app)}
+                                    >
+                                      Record & Bill
+                                    </Button>
+                                    <Button
+                                      size="small" variant="outlined" color="error" startIcon={<CancelIcon />}
+                                      onClick={() => handleUpdateStatus(app.id, 'Cancelled')}
+                                      sx={{ textTransform: 'none', borderRadius: '8px', fontSize: '0.75rem', py: 0.5 }}
+                                    >
+                                      Cancel
+                                    </Button>
+                                  </>
                                 )}
                               </Box>
                             </TableCell>
@@ -289,6 +330,49 @@ export default function DoctorDashboard() {
           </Grid>
         </Grid>
       </Container>
+
+      {/* Record & Bill Modal */}
+      <Dialog open={recordModalOpen} onClose={() => setRecordModalOpen(false)} maxWidth="sm" fullWidth>
+        <DialogTitle sx={{ color: '#0b4d5a', fontWeight: 700 }}>
+          Manage Medical Record & Bill
+        </DialogTitle>
+        <DialogContent dividers>
+          <Typography variant="body2" sx={{ color: '#45656a', mb: 3 }}>
+            Patient: {currentAppForRecord?.patientName || 'Unknown'}
+          </Typography>
+          <Box component="form" sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            <TextField
+              label="Prescription / Medications"
+              multiline
+              rows={4}
+              value={recordData.medication}
+              onChange={(e) => setRecordData({ ...recordData, medication: e.target.value })}
+              fullWidth
+              variant="outlined"
+              placeholder="e.g. Paracetamol 500mg - 2 times a day"
+              sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
+            />
+            <TextField
+              label="Bill Amount ($)"
+              type="number"
+              value={recordData.billAmount}
+              onChange={(e) => setRecordData({ ...recordData, billAmount: e.target.value })}
+              fullWidth
+              variant="outlined"
+              placeholder="e.g. 150"
+              sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
+            />
+          </Box>
+        </DialogContent>
+        <DialogActions sx={{ p: 2, px: 3 }}>
+          <Button onClick={() => setRecordModalOpen(false)} sx={{ color: '#61717a', fontWeight: 600 }}>
+            Cancel
+          </Button>
+          <Button onClick={handleSaveRecord} variant="contained" sx={{ bgcolor: '#0f6c7f', '&:hover': { bgcolor: '#0b4d5a' }, borderRadius: '8px', fontWeight: 600 }}>
+            Save Record
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 }

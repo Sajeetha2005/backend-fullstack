@@ -90,5 +90,10 @@ export const api = {
   async deleteAppointment(id) {
     const res = await client.delete(`/user/appointments/${id}`);
     return res.data;
+  },
+
+  async updateMedicalRecord(id, medication, billAmount) {
+    const res = await client.put(`/doctor/appointments/${id}/record`, { medication, billAmount });
+    return res.data;
   }
 };

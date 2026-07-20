@@ -21,6 +21,10 @@ import {
   TableHead,
   TableRow,
   Alert,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions
 } from '@mui/material';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import PersonIcon from '@mui/icons-material/Person';
@@ -40,6 +44,10 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const [appointments, setAppointments] = useState([]);
   const [message, setMessage] = useState('');
+  
+  // Medical Record view state
+  const [medicationModalOpen, setMedicationModalOpen] = useState(false);
+  const [currentMedication, setCurrentMedication] = useState('');
 
   // Redirect if not logged in
   useEffect(() => {
@@ -100,12 +108,21 @@ export default function Dashboard() {
       doc.line(20, 90, 190, 90);
       
       doc.setFontSize(14);
-      // Assuming a standard fee if not provided
-      const fee = app.fee || 500;
-      doc.text(`Consultation Fee: \u20B9${fee}`, 20, 105);
+      const fee = app.billAmount || 0;
+      doc.text(`Consultation Fee: $${fee}`, 20, 105);
       
-      doc.setFontSize(10);
-      doc.text('Thank you for choosing Curanova Hospital.', 20, 130);
+      if (app.medication) {
+        doc.setFontSize(12);
+        doc.text('Prescription Details:', 20, 115);
+        doc.setFontSize(10);
+        // Split medication text if it's too long
+        const splitText = doc.splitTextToSize(app.medication, 170);
+        doc.text(splitText, 20, 122);
+        doc.text('Thank you for choosing Curanova Hospital.', 20, 150 + (splitText.length * 5));
+      } else {
+        doc.setFontSize(10);
+        doc.text('Thank you for choosing Curanova Hospital.', 20, 130);
+      }
       
       doc.save(`Curanova_Bill_${app.id}.pdf`);
       setMessage('Bill downloaded successfully!');
@@ -457,7 +474,14 @@ export default function Dashboard() {
                                       size="small"
                                       variant="outlined"
                                       startIcon={<MedicalServicesIcon />}
-                                      onClick={() => alert("No medications prescribed for this appointment yet.")}
+                                      onClick={() => {
+                                        if (!app.medication) {
+                                          alert("No medications prescribed for this appointment yet.");
+                                        } else {
+                                          setCurrentMedication(app.medication);
+                                          setMedicationModalOpen(true);
+                                        }
+                                      }}
                                       sx={{ textTransform: 'none', borderRadius: '8px', fontSize: '0.75rem', py: 0.5, color: '#0f6c7f', borderColor: '#0f6c7f' }}
                                     >
                                       Medications
@@ -487,6 +511,23 @@ export default function Dashboard() {
           </Grid>
         </Grid>
       </Container>
+
+      {/* Medication Modal */}
+      <Dialog open={medicationModalOpen} onClose={() => setMedicationModalOpen(false)} maxWidth="sm" fullWidth>
+        <DialogTitle sx={{ color: '#0b4d5a', fontWeight: 700 }}>
+          Prescription & Medications
+        </DialogTitle>
+        <DialogContent dividers>
+          <Typography variant="body1" sx={{ color: '#45656a', whiteSpace: 'pre-wrap' }}>
+            {currentMedication}
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ p: 2 }}>
+          <Button onClick={() => setMedicationModalOpen(false)} variant="contained" sx={{ bgcolor: '#0f6c7f', '&:hover': { bgcolor: '#0b4d5a' }, borderRadius: '8px', fontWeight: 600 }}>
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 }
