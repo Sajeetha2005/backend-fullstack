@@ -11,7 +11,10 @@ import {
   Alert,
   FormControlLabel,
   Checkbox,
+  IconButton,
+  Tooltip
 } from '@mui/material';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
 export default function Login() {
   const { login } = useAuth();
@@ -85,6 +88,13 @@ export default function Login() {
             background: '#ffffff',
           }}
         >
+          <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+            <Tooltip title="Back to Home">
+              <IconButton component={Link} to="/" sx={{ mr: 1, color: '#0f6c7f' }}>
+                <ArrowBackIcon />
+              </IconButton>
+            </Tooltip>
+          </Box>
           <Box sx={{ mb: 3, textAlign: 'center' }}>
             <Typography
               variant="overline"

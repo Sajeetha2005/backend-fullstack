@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { api } from '../utils/api';
+import { IconButton } from '@mui/material';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
 export default function ForgotPassword() {
   const navigate = useNavigate();
@@ -37,6 +39,11 @@ export default function ForgotPassword() {
   return (
     <div className="site-shell text-start">
       <section className="auth-card">
+        <div style={{ marginBottom: '1rem' }}>
+          <IconButton component={Link} to="/">
+            <ArrowBackIcon />
+          </IconButton>
+        </div>
         <p className="tag">Password help</p>
         <h1 className="hero-title">Reset your CuraNova password.</h1>
         <p className="hero-text">Enter your email and we will guide you through the recovery steps.</p>

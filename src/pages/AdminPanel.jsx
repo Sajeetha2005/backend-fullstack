@@ -181,13 +181,16 @@ export default function AdminPanel() {
         {['Appointments', 'Users', 'Doctors'].map(tab => (
           <li className="nav-item" key={tab}>
             <button
-              className={`nav-link ${activeTab === tab ? 'active' : ''}`}
+              className="btn"
               onClick={() => setActiveTab(tab)}
               style={{
                 borderRadius: '8px',
                 backgroundColor: activeTab === tab ? 'var(--primary)' : 'transparent',
-                color: activeTab === tab ? 'white' : 'var(--primary-dark)',
-                fontWeight: '600'
+                color: activeTab === tab ? '#ffffff' : 'var(--primary-dark)',
+                fontWeight: '600',
+                padding: '8px 16px',
+                border: 'none',
+                boxShadow: 'none'
               }}
             >
               {tab}
@@ -339,10 +342,10 @@ export default function AdminPanel() {
                             <span className="d-block text-muted small" style={{ fontWeight: '400' }}>{app.userEmail}</span>
                           </td>
                           <td>{app.patientAge}</td>
-                          <td>{app.doctor}</td>
+                          <td>{app.doctorId ? app.doctorId.name : 'Unknown'}</td>
                           <td>
-                            {app.date}
-                            <span className="d-block text-muted small">{app.time}</span>
+                            {new Date(app.appointmentDate).toLocaleDateString()}
+                            <span className="d-block text-muted small">{app.appointmentTime}</span>
                           </td>
                           <td style={{ maxWidth: '180px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={app.reason}>
                             {app.reason}
@@ -363,7 +366,7 @@ export default function AdminPanel() {
                                 <button className="btn btn-sm btn-outline-success py-1 px-2.5" onClick={() => handleStatusChange(appId, 'Confirmed')} style={{ fontSize: '0.75rem', borderRadius: '6px' }}>Approve</button>
                               )}
                               {app.status !== 'Pending' && (
-                                <button className="btn btn-sm btn-outline-warning py-1 px-2.5" onClick={() => handleStatusChange(appId, 'Pending')} style={{ fontSize: '0.75rem', borderRadius: '6px' }}>Pend</button>
+                                <button className="btn btn-sm btn-outline-warning py-1 px-2.5" onClick={() => handleStatusChange(appId, 'Pending')} style={{ fontSize: '0.75rem', borderRadius: '6px' }}>Pending</button>
                               )}
                               <button className="btn btn-sm btn-outline-danger py-1 px-2.5" onClick={() => handleDeleteAppointment(appId)} style={{ fontSize: '0.75rem', borderRadius: '6px' }}>Delete</button>
                             </div>
@@ -398,7 +401,7 @@ export default function AdminPanel() {
                   ) : (
                     users.map(user => (
                       <tr key={user._id || user.id} style={{ borderBottom: '1px solid var(--border)' }}>
-                        <td style={{ padding: '16px', fontWeight: '600', color: 'var(--primary-dark)' }}>{user.fullname}</td>
+                        <td style={{ padding: '16px', fontWeight: '600', color: 'var(--primary-dark)' }}>{user.name}</td>
                         <td>{user.email}</td>
                         <td>{user.phone || 'N/A'}</td>
                       </tr>

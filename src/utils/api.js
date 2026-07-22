@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'https://react-fullstack-2.onrender.com/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 const client = axios.create({ baseURL: API_BASE_URL });
 
@@ -88,12 +88,31 @@ export const api = {
   },
 
   async deleteAppointment(id) {
-    const res = await client.delete(`/user/appointments/${id}`);
-    return res.data;
+    try {
+      const res = await client.delete(`/user/appointments/${id}`);
+      return res.data;
+    } catch (err) {
+      if (err.response && err.response.status === 403) {
+        const resAdmin = await client.delete(`/admin/appointments/${id}`);
+        return resAdmin.data;
+      }
+      throw err;
+    }
   },
 
   async updateMedicalRecord(id, medication, billAmount) {
     const res = await client.put(`/doctor/appointments/${id}/record`, { medication, billAmount });
+    return res.data;
+  },
+
+  // Reviews
+  async getReviews() {
+    const res = await client.get('/public/reviews');
+    return res.data.reviews || [];
+  },
+
+  async submitReview(data) {
+    const res = await client.post('/public/reviews', data);
     return res.data;
   }
 };

@@ -141,9 +141,9 @@ export default function DoctorDashboard() {
           </Alert>
         )}
 
-        <Grid container spacing={4}>
-          {/* Doctor Profile Card */}
-          <Grid item xs={12} md={4}>
+        <Grid container spacing={4} alignItems="stretch">
+          {/* Column 1: Profile (Left) */}
+          <Grid item xs={12} md={3} sx={{ display: 'flex' }}>
             <Paper
               elevation={0}
               sx={{
@@ -152,7 +152,9 @@ export default function DoctorDashboard() {
                 border: '1px solid #dbe9ec',
                 boxShadow: '0 24px 60px rgba(15, 108, 127, 0.08)',
                 background: '#ffffff',
-                height: '100%',
+                width: '100%',
+                display: 'flex',
+                flexDirection: 'column',
               }}
             >
               <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 3 }}>
@@ -178,57 +180,49 @@ export default function DoctorDashboard() {
                   <EmailIcon sx={{ color: '#0f6c7f' }} />
                   <Box>
                     <Typography variant="caption" display="block" sx={{ color: '#61717a', fontWeight: 500 }}>Email Address</Typography>
-                    <Typography variant="body2" sx={{ color: '#12343b', fontWeight: 600 }}>{user.email}</Typography>
+                    <Typography variant="body2" sx={{ color: '#12343b', fontWeight: 600, wordBreak: 'break-all' }}>{user.email}</Typography>
                   </Box>
                 </Box>
               </Box>
             </Paper>
           </Grid>
 
-          {/* Appointments & Stats */}
-          <Grid item xs={12} md={8}>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              {/* Stats Overview */}
-              <Grid container spacing={2}>
-                <Grid item xs={12} sm={4}>
-                  <Card elevation={0} sx={{ borderRadius: '16px', border: '1px solid #dbe9ec', bgcolor: '#e5f6f8' }}>
-                    <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                      <CalendarMonthIcon sx={{ fontSize: '2.5rem', color: '#0f6c7f' }} />
-                      <Box>
-                        <Typography variant="h5" sx={{ fontWeight: 800, color: '#0f6c7f' }}>{appointments.length}</Typography>
-                        <Typography variant="caption" sx={{ color: '#45656a', fontWeight: 600 }}>Total Bookings</Typography>
-                      </Box>
-                    </CardContent>
-                  </Card>
-                </Grid>
+          {/* Column 2: Stats (Middle, Stacked Vertically) */}
+          <Grid item xs={12} md={3} sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <Card elevation={0} sx={{ borderRadius: '16px', border: '1px solid #dbe9ec', bgcolor: '#e5f6f8', width: '100%', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+              <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2, p: 3 }}>
+                <CalendarMonthIcon sx={{ fontSize: '2.5rem', color: '#0f6c7f' }} />
+                <Box>
+                  <Typography variant="h4" sx={{ fontWeight: 800, color: '#0f6c7f' }}>{appointments.length}</Typography>
+                  <Typography variant="subtitle1" sx={{ color: '#45656a', fontWeight: 600, lineHeight: 1.2 }}>Total Bookings</Typography>
+                </Box>
+              </CardContent>
+            </Card>
 
-                <Grid item xs={12} sm={4}>
-                  <Card elevation={0} sx={{ borderRadius: '16px', border: '1px solid #dbe9ec', bgcolor: '#f0fdf4' }}>
-                    <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                      <CheckCircleIcon sx={{ fontSize: '2.5rem', color: '#16a34a' }} />
-                      <Box>
-                        <Typography variant="h5" sx={{ fontWeight: 800, color: '#16a34a' }}>{confirmedCount}</Typography>
-                        <Typography variant="caption" sx={{ color: '#166534', fontWeight: 600 }}>Confirmed</Typography>
-                      </Box>
-                    </CardContent>
-                  </Card>
-                </Grid>
+            <Card elevation={0} sx={{ borderRadius: '16px', border: '1px solid #dbe9ec', bgcolor: '#f0fdf4', width: '100%', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+              <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2, p: 3 }}>
+                <CheckCircleIcon sx={{ fontSize: '2.5rem', color: '#16a34a' }} />
+                <Box>
+                  <Typography variant="h4" sx={{ fontWeight: 800, color: '#16a34a' }}>{confirmedCount}</Typography>
+                  <Typography variant="subtitle1" sx={{ color: '#166534', fontWeight: 600, lineHeight: 1.2 }}>Confirmed</Typography>
+                </Box>
+              </CardContent>
+            </Card>
 
-                <Grid item xs={12} sm={4}>
-                  <Card elevation={0} sx={{ borderRadius: '16px', border: '1px solid #dbe9ec', bgcolor: '#fffbeb' }}>
-                    <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                      <PendingActionsIcon sx={{ fontSize: '2.5rem', color: '#d97706' }} />
-                      <Box>
-                        <Typography variant="h5" sx={{ fontWeight: 800, color: '#d97706' }}>{pendingCount}</Typography>
-                        <Typography variant="caption" sx={{ color: '#92400e', fontWeight: 600 }}>Pending Review</Typography>
-                      </Box>
-                    </CardContent>
-                  </Card>
-                </Grid>
-              </Grid>
+            <Card elevation={0} sx={{ borderRadius: '16px', border: '1px solid #dbe9ec', bgcolor: '#fffbeb', width: '100%', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+              <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2, p: 3 }}>
+                <PendingActionsIcon sx={{ fontSize: '2.5rem', color: '#d97706' }} />
+                <Box>
+                  <Typography variant="h4" sx={{ fontWeight: 800, color: '#d97706' }}>{pendingCount}</Typography>
+                  <Typography variant="subtitle1" sx={{ color: '#92400e', fontWeight: 600, lineHeight: 1.2 }}>Pending Review</Typography>
+                </Box>
+              </CardContent>
+            </Card>
+          </Grid>
 
-              {/* Appointments List */}
-              <Paper elevation={0} sx={{ p: 4, borderRadius: '24px', border: '1px solid #dbe9ec', background: '#ffffff' }}>
+          {/* Column 3: Appointments List (Right) */}
+          <Grid item xs={12} md={6} sx={{ display: 'flex' }}>
+            <Paper elevation={0} sx={{ width: '100%', flex: 1, p: 4, borderRadius: '24px', border: '1px solid #dbe9ec', background: '#ffffff' }}>
                 <Typography variant="h6" sx={{ fontWeight: 700, color: '#0b4d5a', mb: 3 }}>
                   Patient Appointments
                 </Typography>
@@ -244,13 +238,13 @@ export default function DoctorDashboard() {
                     <Table sx={{ minWidth: 600 }}>
                       <TableHead>
                         <TableRow sx={{ '& th': { color: '#0b4d5a', fontWeight: 700, borderBottom: '2px solid #dbe9ec' } }}>
-                          <TableCell>Patient Name</TableCell>
-                          <TableCell>Age & Contact</TableCell>
-                          <TableCell>Date</TableCell>
-                          <TableCell>Time</TableCell>
-                          <TableCell>Reason</TableCell>
-                          <TableCell>Status</TableCell>
-                          <TableCell align="right">Actions</TableCell>
+                          <TableCell sx={{ width: '18%' }}>Patient Name</TableCell>
+                          <TableCell sx={{ width: '14%' }}>Age & Contact</TableCell>
+                          <TableCell sx={{ width: '12%' }}>Date</TableCell>
+                          <TableCell sx={{ width: '10%' }}>Time</TableCell>
+                          <TableCell sx={{ width: '22%' }}>Reason</TableCell>
+                          <TableCell sx={{ width: '12%' }}>Status</TableCell>
+                          <TableCell align="right" sx={{ width: '12%' }}>Actions</TableCell>
                         </TableRow>
                       </TableHead>
                       <TableBody>
@@ -326,7 +320,6 @@ export default function DoctorDashboard() {
                   </TableContainer>
                 )}
               </Paper>
-            </Box>
           </Grid>
         </Grid>
       </Container>

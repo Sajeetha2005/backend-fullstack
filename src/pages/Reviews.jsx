@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { api } from '../utils/api';
 
 const DEFAULT_REVIEWS = [
   { stars: '★★★★★', title: '“Very supportive experience”', text: 'The staff was very supportive and the appointment process was smooth from start to finish.', author: 'Anjali P.' },
@@ -20,19 +21,18 @@ export default function Reviews() {
   const [formStatus, setFormStatus] = useState('');
   const [formSuccess, setFormSuccess] = useState(false);
 
-  // Load reviews from local storage + default reviews on mount
+  // Load reviews from DB + default reviews on mount
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem('curanovaUserReviews');
-      if (stored) {
-        setReviews([...DEFAULT_REVIEWS, ...JSON.parse(stored)]);
-      } else {
+    const fetchReviews = async () => {
+      try {
+        const dbReviews = await api.getReviews();
+        setReviews([...DEFAULT_REVIEWS, ...dbReviews]);
+      } catch (e) {
+        console.error(e);
         setReviews(DEFAULT_REVIEWS);
       }
-    } catch (e) {
-      console.error(e);
-      setReviews(DEFAULT_REVIEWS);
-    }
+    };
+    fetchReviews();
   }, []);
 
   // Autoplay functionality
@@ -59,7 +59,7 @@ export default function Reviews() {
     setCurrentIndex(index);
   };
 
-  const handleSubmitReview = (e) => {
+  const handleSubmitReview = async (e) => {
     e.preventDefault();
     if (!newAuthor || !newTitle || !newText) {
       setFormStatus('Please fill in all details.');
@@ -68,30 +68,32 @@ export default function Reviews() {
     }
 
     const ratingStars = '★'.repeat(Number(newRating)) + '☆'.repeat(5 - Number(newRating));
-    const newReviewItem = {
-      stars: ratingStars,
-      title: `“${newTitle.trim()}”`,
-      text: newText.trim(),
-      author: newAuthor.trim()
-    };
 
     try {
-      const stored = JSON.parse(localStorage.getItem('curanovaUserReviews') || '[]');
-      const updatedStored = [...stored, newReviewItem];
-      localStorage.setItem('curanovaUserReviews', JSON.stringify(updatedStored));
+      const result = await api.submitReview({
+        author: newAuthor.trim(),
+        title: `“${newTitle.trim()}”`,
+        text: newText.trim(),
+        stars: ratingStars
+      });
       
-      const updatedAll = [...reviews, newReviewItem];
-      setReviews(updatedAll);
-      
-      // Jump to the newly added review
-      setCurrentIndex(updatedAll.length - 1);
-      
-      setNewAuthor('');
-      setNewTitle('');
-      setNewText('');
-      setNewRating('5');
-      setFormSuccess(true);
-      setFormStatus('Thank you! Your review has been added successfully.');
+      if (result.success) {
+        const updatedAll = [...reviews, result.review];
+        setReviews(updatedAll);
+        
+        // Jump to the newly added review
+        setCurrentIndex(updatedAll.length - 1);
+        
+        setNewAuthor('');
+        setNewTitle('');
+        setNewText('');
+        setNewRating('5');
+        setFormSuccess(true);
+        setFormStatus('Thank you! Your review has been added successfully.');
+      } else {
+        setFormStatus('Something went wrong. Please try again.');
+        setFormSuccess(false);
+      }
     } catch (err) {
       console.error(err);
       setFormStatus('Something went wrong. Please try again.');

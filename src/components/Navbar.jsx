@@ -64,18 +64,11 @@ export default function Navbar() {
           </li>
 
           {!user && (
-            <>
-              <li>
-                <NavLink to="/login" className={({ isActive }) => isActive ? 'active' : ''}>
-                  Login
-                </NavLink>
-              </li>
-              <li>
-                <NavLink to="/signup" className="btn btn-sm text-white py-1 px-3" style={{ fontSize: '0.85rem' }}>
-                  Sign Up
-                </NavLink>
-              </li>
-            </>
+            <li>
+              <NavLink to="/login" className={({ isActive }) => isActive ? 'active' : ''}>
+                Login
+              </NavLink>
+            </li>
           )}
 
           {user && user.role === 'user' && (
@@ -84,11 +77,6 @@ export default function Navbar() {
                 <NavLink to="/dashboard" className={({ isActive }) => isActive ? 'active' : ''}>
                   Profile
                 </NavLink>
-              </li>
-              <li>
-                <button onClick={handleLogout} className="nav-button-link">
-                  Logout
-                </button>
               </li>
             </>
           )}
@@ -110,11 +98,6 @@ export default function Navbar() {
                   Profile
                 </NavLink>
               </li>
-              <li>
-                <button onClick={handleLogout} className="nav-button-link">
-                  Logout
-                </button>
-              </li>
             </>
           )}
 
@@ -124,11 +107,6 @@ export default function Navbar() {
                 <NavLink to="/admin" className={({ isActive }) => isActive ? 'active' : ''}>
                   Dashboard
                 </NavLink>
-              </li>
-              <li>
-                <button onClick={handleLogout} className="nav-button-link">
-                  Logout
-                </button>
               </li>
             </>
           )}

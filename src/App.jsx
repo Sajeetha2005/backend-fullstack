@@ -3,6 +3,7 @@ import { HashRouter as Router, Routes, Route, useLocation } from 'react-router-d
 import { AuthProvider } from './context/AuthContext';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
+import ScrollToTop from './components/ScrollToTop';
 
 // Pages
 import Home from './pages/Home';
@@ -23,7 +24,7 @@ import AdminPanel from './pages/AdminPanel';
 
 function AppLayout() {
   const location = useLocation();
-  const hideNavFooter = ['/doctor-dashboard', '/admin'].includes(location.pathname);
+  const hideNavFooter = ['/doctor-dashboard', '/admin', '/login', '/signup', '/forgot-password'].includes(location.pathname);
 
   return (
     <div className="site-shell-wrapper">
@@ -58,6 +59,7 @@ export default function App() {
   return (
     <AuthProvider>
       <Router>
+        <ScrollToTop />
         <AppLayout />
       </Router>
     </AuthProvider>
