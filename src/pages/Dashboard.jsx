@@ -447,16 +447,6 @@ export default function Dashboard() {
                               <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
                                 {app.status === 'Pending' && (
                                   <>
-                                    <Button
-                                      size="small"
-                                      variant="outlined"
-                                      color="error"
-                                      startIcon={<CancelIcon />}
-                                      onClick={() => handleCancelAppointment(app.id)}
-                                      sx={{ textTransform: 'none', borderRadius: '8px', fontSize: '0.75rem', py: 0.5 }}
-                                    >
-                                      Cancel
-                                    </Button>
                                   </>
                                 )}
                                 {app.status === 'Confirmed' && (
@@ -485,16 +475,6 @@ export default function Dashboard() {
                                       sx={{ textTransform: 'none', borderRadius: '8px', fontSize: '0.75rem', py: 0.5, color: '#0f6c7f', borderColor: '#0f6c7f' }}
                                     >
                                       Medications
-                                    </Button>
-                                    <Button
-                                      size="small"
-                                      variant="outlined"
-                                      color="error"
-                                      startIcon={<CancelIcon />}
-                                      onClick={() => handleCancelAppointment(app.id)}
-                                      sx={{ textTransform: 'none', borderRadius: '8px', fontSize: '0.75rem', py: 0.5 }}
-                                    >
-                                      Cancel
                                     </Button>
                                   </>
                                 )}
